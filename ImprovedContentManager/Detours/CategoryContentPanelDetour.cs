@@ -7,6 +7,7 @@ using ColossalFramework.PlatformServices;
 using ColossalFramework.Plugins;
 using ImprovedContentManager.Enums;
 using ImprovedContentManager.Redirection.Attributes;
+using UnityEngine;
 
 namespace ImprovedContentManager.Detours
 {
@@ -24,68 +25,63 @@ namespace ImprovedContentManager.Detours
         public static bool dontRefreshLabels = false;
         public static bool refreshLabelsFlag = false;
 
+
         [RedirectMethod]
-        private List<EntryData> RefreshAssetsImpl()
+        private void RefreshAssetsImpl()
         {
-            List<EntryData> entryDataList = new List<EntryData>();
-            Package.AssetType[] assetTypeArray = new Package.AssetType[1]
-            {
-                m_AssetType
-            };
-            foreach (Package.Asset filterAsset in PackageManager.FilterAssets(assetTypeArray))
+            this.m_Assets = new List<EntryData>();
+            foreach (Package.Asset filterAsset in PackageManager.FilterAssets(this.m_AssetType))
             {
                 if (!this.m_OnlyMain || filterAsset.isMainAsset)
-                {
-                    EntryData entryData = new EntryData(filterAsset);
-                    entryDataList.Add(entryData);
-                }
+                    this.m_Assets.Add(new EntryData(filterAsset));
             }
             //begin mod
             if (m_AssetType?.ToString() != nameof(CustomAssetMetaData))
             {
-                return entryDataList;
+                return;
             }
-            entryDataList = Filtering.FilterDisplayedAssets(entryDataList, out _assetTypeIndex);
+            this.m_Assets = Filtering.FilterDisplayedAssets(this.m_Assets, out _assetTypeIndex);
             if (!dontRefreshLabels)
             {
                 refreshLabelsFlag = true;
             }
-            Sorting.SortDisplayedAssets(entryDataList);
+            Sorting.SortDisplayedAssets(this.m_Assets);
             //end mod
-            return entryDataList;
         }
 
+
         [RedirectMethod]
-        private List<EntryData> RefreshAssetsModImpl()
+        private void RefreshAssetsModImpl()
         {
-            List<EntryData> entryDataList = new List<EntryData>();
+            this.m_Assets = new List<EntryData>();
             foreach (PluginManager.PluginInfo info in Singleton<PluginManager>.instance.GetPluginsInfo())
             {
-                EntryData entryData = new EntryData(info);
-                entryDataList.Add(entryData);
-            }
-            //begin mod
-            Sorting.SortDisplayedPlugins(entryDataList);
-            //end mod
-            return entryDataList;
-        }
-
-
-
-        [RedirectMethod]
-        private List<EntryData> RefreshAssetsWorkshopImpl()
-        {
-            List<EntryData> entryDataList = new List<EntryData>();
-            PublishedFileId[] subscribedItems = PlatformService.workshop.GetSubscribedItems();
-            if (subscribedItems != null)
-            {
-                foreach (PublishedFileId id in subscribedItems)
+                try
                 {
-                    EntryData entryData = new EntryData(id);
-                    entryDataList.Add(entryData);
+                    this.m_Assets.Add(new EntryData(info));
+                }
+                catch
+                {
+                    Debug.LogError((object)("Failed to create content manager entry for mod " + info.name));
                 }
             }
-            return entryDataList;
+            //begin mod
+            Sorting.SortDisplayedPlugins(this.m_Assets);
+            //end mod
+        }
+
+        private List<EntryData> m_Assets
+        {
+            get
+            {
+                return (List<EntryData>)typeof(CategoryContentPanel).GetField("m_Assets",
+            BindingFlags.NonPublic | BindingFlags.Instance).GetValue(this);
+            }
+            set
+            {
+                typeof(CategoryContentPanel).GetField("m_Assets",
+            BindingFlags.NonPublic | BindingFlags.Instance).SetValue(this, value);
+            }
         }
 
         private Package.AssetType m_AssetType => (Package.AssetType)typeof(CategoryContentPanel).GetField("m_AssetType",
