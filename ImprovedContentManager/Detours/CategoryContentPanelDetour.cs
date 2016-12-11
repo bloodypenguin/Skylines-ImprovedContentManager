@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using ColossalFramework;
 using ColossalFramework.Packaging;
 using ColossalFramework.PlatformServices;
@@ -70,6 +71,26 @@ namespace ImprovedContentManager.Detours
             //end mod
         }
 
+        [RedirectMethod]
+        public void SetActiveAll(bool enabled)
+        {
+            //begin mod
+            using (List<EntryData>.Enumerator enumerator = this.m_VisibleAssets.GetEnumerator())
+            {
+                //end mod
+                while (enumerator.MoveNext())
+                    enumerator.Current.SetActive(enabled);
+            }
+            this.RefreshEntries();
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        [RedirectReverse]
+        private void RefreshEntries()
+        {
+            UnityEngine.Debug.LogError("CategoryContentPanelDetour - Failed to detour RefreshEntries()");
+        }
+
         private List<EntryData> m_Assets
         {
             get
@@ -83,6 +104,9 @@ namespace ImprovedContentManager.Detours
             BindingFlags.NonPublic | BindingFlags.Instance).SetValue(this, value);
             }
         }
+
+        private List<EntryData> m_VisibleAssets => (List<EntryData>)typeof(CategoryContentPanel).GetField("m_VisibleAssets",
+            BindingFlags.NonPublic | BindingFlags.Instance).GetValue(this);
 
         private Package.AssetType m_AssetType => (Package.AssetType)typeof(CategoryContentPanel).GetField("m_AssetType",
             BindingFlags.NonPublic | BindingFlags.Instance).GetValue(this);
