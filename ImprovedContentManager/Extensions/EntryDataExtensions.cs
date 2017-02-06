@@ -17,5 +17,19 @@ namespace ImprovedContentManager.Extensions
             }
             return string.Compare(a.entryName, b.entryName, StringComparison.InvariantCultureIgnoreCase);
         }
+
+        public static int CompareAuthors(this EntryData a, EntryData b)
+        {
+            if (a?.authorName == null)
+            {
+                return 1;
+            }
+
+            if (b?.authorName == null)
+            {
+                return -1;
+            }
+            return string.Compare(a.authorName, b.authorName, StringComparison.InvariantCultureIgnoreCase);
+        }
     }
 }

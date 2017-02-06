@@ -21,7 +21,6 @@ namespace ImprovedContentManager.UI
     {
         private static UIPanel _buttonsPanel;
         private static UIPanel _sortModePanel;
-        private static UILabel _sortModeLabel;
         private static UIDropDown _sortOrderDropDown;
         private static UILabel _sortOrderLabel;
         private static UIPanel _sortOptions;
@@ -57,29 +56,23 @@ namespace ImprovedContentManager.UI
                 }
             } else {
                 var contentManagerPanelGameObject = GameObject.Find("(Library) ContentManagerPanel");
-                if (contentManagerPanelGameObject == null)
-                {
-                    return;
-                }
-                var contentManagerPanel = contentManagerPanelGameObject.GetComponent<ContentManagerPanel>();
+                var contentManagerPanel = contentManagerPanelGameObject?.GetComponent<ContentManagerPanel>();
                 if (contentManagerPanel == null)
                 {
                     return;
                 }
                 var categoryContainerGameObject = GameObject.Find("CategoryContainer");
-                if (categoryContainerGameObject == null)
-                {
-                    return;
-                }
-                var categoryContainer = categoryContainerGameObject.GetComponent<UITabContainer>();
-                if (categoryContainer == null)
-                {
-                    return;
-                }
-                var mods = categoryContainer.Find("Assets");
+                var categoryContainer = categoryContainerGameObject?.GetComponent<UITabContainer>();
+                var mods = categoryContainer?.Find("Assets");
                 if (mods == null)
                 {
                     return; ;
+                }
+                var sortByPanel = mods.Find("SortByPanel");
+                var sortBy = sortByPanel?.Find("SortBy");
+                if (sortBy == null)
+                {
+                    return;
                 }
                 var modsList = mods.Find("Content");
                 if (modsList == null)
@@ -106,11 +99,6 @@ namespace ImprovedContentManager.UI
                 Object.Destroy(_sortModePanel.gameObject);
                 _sortModePanel = null;
             }
-            if (_sortModeLabel != null)
-            {
-                Object.Destroy(_sortModeLabel.gameObject);
-                _sortModeLabel = null;
-            }
             if (_sortOrderDropDown != null)
             {
                 Object.Destroy(_sortOrderDropDown.gameObject);
@@ -132,7 +120,6 @@ namespace ImprovedContentManager.UI
                 _sortOptions = null;
             }
 
-            CategoryContentPanelDetour._assetSortMode = SortMode.Alphabetical;
             CategoryContentPanelDetour._assetFilterMode = AssetType.All;
             CategoryContentPanelDetour._assetSortOrder = SortOrder.Ascending;
 
@@ -283,21 +270,7 @@ namespace ImprovedContentManager.UI
             _sortModePanel.size = new Vector2(100.0f, 24.0f);
             _sortModePanel.autoLayout = false;
 
-            var sortModeDropDown = UIUtils.CreateDropDownForEnum<SortMode>(_sortModePanel, "SortModeDropDown");
-            sortModeDropDown.size = new Vector2(100.0f, 24.0f);
-            sortModeDropDown.relativePosition = new Vector3(0.0f, 0.0f, 0.0f);
-            sortModeDropDown.eventSelectedIndexChanged += (component, value) =>
-            {
-                sortModeDropDown.enabled = false;
-                CategoryContentPanelDetour._assetSortMode = (SortMode)value;
-                CategoryContentPanelDetour.dontRefreshLabels = true;
-                RefreshAssets();
-                CategoryContentPanelDetour.dontRefreshLabels = false;
-                sortModeDropDown.enabled = true;
-            };
-            _sortModeLabel = UIUtils.CreateLabel(_sortModePanel);
-            _sortModeLabel.text = "Sort by";
-            _sortModeLabel.relativePosition = new Vector3(0.0f, -2.0f, 0.0f);
+            //TODO(earalov): add sort mode drop down items and add comparators to dictionary
 
 
             _sortOrderDropDown = UIUtils.CreateDropDownForEnum<SortOrder>(_sortModePanel, "SortOrderDropDown");

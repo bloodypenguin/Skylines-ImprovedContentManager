@@ -6,26 +6,27 @@ using ColossalFramework;
 using ColossalFramework.Packaging;
 using ColossalFramework.PlatformServices;
 using ColossalFramework.Plugins;
+using ColossalFramework.UI;
 using ImprovedContentManager.Enums;
+using ImprovedContentManager.Extensions;
 using ImprovedContentManager.Redirection.Attributes;
 using UnityEngine;
 
 namespace ImprovedContentManager.Detours
 {
+    //TODO(earalov): add direction support for standard sortings
     [TargetType(typeof(CategoryContentPanel))]
     public class CategoryContentPanelDetour : CategoryContentPanel
     {
-        public static SortMode _pluginSortMode = SortMode.Alphabetical;
         public static SortOrder _pluginSortOrder = SortOrder.Ascending;
 
-        public static SortMode _assetSortMode = SortMode.Alphabetical;
         public static SortOrder _assetSortOrder = SortOrder.Ascending;
         public static AssetType _assetFilterMode = AssetType.All;
 
         public static Dictionary<AssetType, int> _assetTypeIndex = new Dictionary<AssetType, int>();
         public static bool dontRefreshLabels = false;
         public static bool refreshLabelsFlag = false;
-
+        
 
         [RedirectMethod]
         private void RefreshAssetsImpl()
@@ -33,8 +34,22 @@ namespace ImprovedContentManager.Detours
             this.m_Assets = new List<EntryData>();
             foreach (Package.Asset filterAsset in PackageManager.FilterAssets(this.m_AssetType))
             {
-                if (!this.m_OnlyMain || filterAsset.isMainAsset)
-                    this.m_Assets.Add(new EntryData(filterAsset));
+                if (!(this.m_AssetType == UserAssetType.SaveGameMetaData) || !PackageHelper.IsDemoModeSave(filterAsset))
+                {
+                    if (this.m_OnlyMain)
+                    {
+                        if (!filterAsset.isMainAsset)
+                            continue;
+                    }
+                    try
+                    {
+                        this.m_Assets.Add(new EntryData(filterAsset));
+                    }
+                    catch
+                    {
+                        Debug.LogError((object)("Failed to create content manager entry for asset " + filterAsset.name));
+                    }
+                }
             }
             //begin mod
             if (m_AssetType?.ToString() != nameof(CustomAssetMetaData))
@@ -46,28 +61,6 @@ namespace ImprovedContentManager.Detours
             {
                 refreshLabelsFlag = true;
             }
-            Sorting.SortDisplayedAssets(this.m_Assets);
-            //end mod
-        }
-
-
-        [RedirectMethod]
-        private void RefreshAssetsModImpl()
-        {
-            this.m_Assets = new List<EntryData>();
-            foreach (PluginManager.PluginInfo info in Singleton<PluginManager>.instance.GetPluginsInfo())
-            {
-                try
-                {
-                    this.m_Assets.Add(new EntryData(info));
-                }
-                catch
-                {
-                    Debug.LogError((object)("Failed to create content manager entry for mod " + info.name));
-                }
-            }
-            //begin mod
-            Sorting.SortDisplayedPlugins(this.m_Assets);
             //end mod
         }
 
@@ -82,6 +75,24 @@ namespace ImprovedContentManager.Detours
                     enumerator.Current.SetActive(enabled);
             }
             this.RefreshEntries();
+        }
+
+        [RedirectMethod]
+        private int SortByName(EntryData a, EntryData b)
+        {
+            UnityEngine.Debug.Log("B");
+            //begin mod
+            return Sorting.SecondarySort(a, b, (a1, b1) => 0);
+            //end mod
+        }
+
+        [RedirectMethod]
+        private int SortByAuthor(EntryData a, EntryData b)
+        {
+            UnityEngine.Debug.Log("A");
+            //begin mod
+            return Sorting.SecondarySort(a, b, (a1, b1) => a1.CompareAuthors(b1), true);
+            //end mod
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
@@ -108,10 +119,13 @@ namespace ImprovedContentManager.Detours
         private List<EntryData> m_VisibleAssets => (List<EntryData>)typeof(CategoryContentPanel).GetField("m_VisibleAssets",
             BindingFlags.NonPublic | BindingFlags.Instance).GetValue(this);
 
+
+
         private Package.AssetType m_AssetType => (Package.AssetType)typeof(CategoryContentPanel).GetField("m_AssetType",
             BindingFlags.NonPublic | BindingFlags.Instance).GetValue(this);
 
         private bool m_OnlyMain => (bool)typeof(CategoryContentPanel).GetField("m_OnlyMain",
             BindingFlags.NonPublic | BindingFlags.Instance).GetValue(this);
+
     }
 }

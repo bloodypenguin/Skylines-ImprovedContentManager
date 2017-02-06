@@ -4,15 +4,13 @@ namespace ImprovedContentManager.Enums
 {
     public enum SortMode
     {
-        [Description("Name")]
-        Alphabetical = 0,
         [Description("Last updated")]
-        LastUpdated = 1,
+        LastUpdated = 0,
         [Description("Last subscribed")]
-        LastSubscribed = 2,
+        LastSubscribed = 1,
         [Description("Active")]
-        Active = 3,
+        Active = 2,
         [Description("Location")]
-        Location = 4
+        Location = 3
     }
 }
