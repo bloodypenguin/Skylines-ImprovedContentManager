@@ -80,16 +80,14 @@ namespace ImprovedContentManager.Detours
         [RedirectMethod]
         public static int SortByName(CategoryContentPanel panel, EntryData a, EntryData b)
         {
-            UnityEngine.Debug.Log("B");
             //begin mod
-            return Sorting.SortDirection(a, b, (a1, b1) => 0, true);
+            return Sorting.SortDirection(a, b, (a1, b1) => a1.CompareNames(b1));
             //end mod
         }
 
         [RedirectMethod]
         public static int SortByAuthor(CategoryContentPanel panel, EntryData a, EntryData b)
         {
-            UnityEngine.Debug.Log("A");
             //begin mod
             return Sorting.SortDirection(a, b, (a1, b1) => a1.CompareAuthors(b1), true);
             //end mod
@@ -120,12 +118,10 @@ namespace ImprovedContentManager.Detours
             BindingFlags.NonPublic | BindingFlags.Instance).GetValue(this);
 
 
-
         private Package.AssetType m_AssetType => (Package.AssetType)typeof(CategoryContentPanel).GetField("m_AssetType",
             BindingFlags.NonPublic | BindingFlags.Instance).GetValue(this);
 
         private bool m_OnlyMain => (bool)typeof(CategoryContentPanel).GetField("m_OnlyMain",
             BindingFlags.NonPublic | BindingFlags.Instance).GetValue(this);
-
     }
 }

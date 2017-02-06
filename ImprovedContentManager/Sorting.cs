@@ -71,7 +71,7 @@ namespace ImprovedContentManager
         {
             var ascending = CategoryContentPanelDetour._pluginSortOrder == SortOrder.Ascending;
             var diff = ascending ? comparsion.Invoke(a, b) : comparsion.Invoke(b, a);
-            return diff != 0 || alphabeticalSort ? diff : (ascending ? a.CompareNames(b) : b.CompareNames(a));
+            return diff == 0 || alphabeticalSort ? (ascending ? a.CompareNames(b) : b.CompareNames(a)) : diff;
         }
     }
 }
