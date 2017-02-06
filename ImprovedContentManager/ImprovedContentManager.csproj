@@ -54,6 +54,7 @@
     <Compile Include="Redirection\Redirector.cs" />
     <Compile Include="Redirection\Tuple.cs" />
     <Compile Include="Sorting.cs" />
+    <Compile Include="UI\PanelUtil.cs" />
     <Compile Include="UI\ImprovedAssetsPanel.cs" />
     <Compile Include="UI\ImprovedModsPanel.cs" />
     <Compile Include="Util\EnumUtils.cs" />

@@ -19,6 +19,10 @@ namespace ImprovedContentManager.UI
 {
     public class ImprovedAssetsPanel : MonoBehaviour
     {
+        private static readonly object LabelsLock = new object();
+        private static CategoryContentPanel _categoryContainer;
+
+
         private static UIPanel _buttonsPanel;
         private static UIPanel _sortModePanel;
         private static UIDropDown _sortOrderDropDown;
@@ -29,6 +33,7 @@ namespace ImprovedContentManager.UI
         private static Dictionary<AssetType, UILabel> _assetTypeLabels = null;
 
         private static bool _ui_initialized;
+        private static bool _itemsSorted;
 
         public static void Bootstrap()
         {
@@ -49,50 +54,58 @@ namespace ImprovedContentManager.UI
             }
             if (_ui_initialized)
             {
+                if (!_itemsSorted && _categoryContainer.gameObject.GetComponent<UIComponent>().isVisible)
+                {
+                    _categoryContainer.GetType().GetField("m_SortImpl", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(_categoryContainer, new Comparison<EntryData>(
+                        (a, b) => CategoryContentPanelDetour.SortByName(_categoryContainer, a, b)));
+                    RefreshAssets();
+                    _itemsSorted = true;
+                }
                 if (CategoryContentPanelDetour.refreshLabelsFlag)
                 {
                     SetAssetCountLabels(CategoryContentPanelDetour._assetTypeIndex);
                     CategoryContentPanelDetour.refreshLabelsFlag = false;
                 }
-            } else {
-                var contentManagerPanelGameObject = GameObject.Find("(Library) ContentManagerPanel");
-                var contentManagerPanel = contentManagerPanelGameObject?.GetComponent<ContentManagerPanel>();
-                if (contentManagerPanel == null)
-                {
-                    return;
-                }
-                var categoryContainerGameObject = GameObject.Find("CategoryContainer");
-                var categoryContainer = categoryContainerGameObject?.GetComponent<UITabContainer>();
-                var mods = categoryContainer?.Find("Assets");
-                if (mods == null)
-                {
-                    return; ;
-                }
-                var sortByPanel = mods.Find("SortByPanel");
-                var sortBy = sortByPanel?.Find("SortBy");
-                if (sortBy == null)
-                {
-                    return;
-                }
-                var modsList = mods.Find("Content");
-                if (modsList == null)
-                {
-                    return;
-                }
-                var moarGroupObj = GameObject.Find("MoarGroup");
-                if (moarGroupObj == null)
-                {
-                    return;
-                }
-                Initialize();
-                _ui_initialized = true;
+                return;
             }
-
+            var contentManagerPanelGameObject = GameObject.Find("(Library) ContentManagerPanel");
+            var contentManagerPanel = contentManagerPanelGameObject?.GetComponent<ContentManagerPanel>();
+            if (contentManagerPanel == null)
+            {
+                return;
+            }
+            var categoryContainerGameObject = GameObject.Find("CategoryContainer");
+            var categoryContainer = categoryContainerGameObject?.GetComponent<UITabContainer>();
+            var mods = categoryContainer?.Find("Assets");
+            if (mods == null)
+            {
+                return; ;
+            }
+            var sortByPanel = mods.Find("SortByPanel");
+            var sortBy = sortByPanel?.Find("SortBy");
+            if (sortBy == null)
+            {
+                return;
+            }
+            var modsList = mods.Find("Content");
+            if (modsList == null)
+            {
+                return;
+            }
+            var moarGroupObj = GameObject.Find("MoarGroup");
+            if (moarGroupObj == null)
+            {
+                return;
+            }
+            Initialize();
+            _ui_initialized = true;
         }
 
         public void OnDestroy()
         {
+            _itemsSorted = false;
             _ui_initialized = false;
+            _categoryContainer = null;
 
             if (_sortModePanel != null)
             {
@@ -274,9 +287,6 @@ namespace ImprovedContentManager.UI
             _sortModePanel.size = new Vector2(120.0f, 24.0f);
             _sortModePanel.autoLayout = false;
 
-            //TODO(earalov): add sort mode drop down items and add comparators to dictionary
-
-
             _sortOrderDropDown = UIUtils.CreateDropDownForEnum<SortOrder>(_sortModePanel, "SortOrderDropDown");
             _sortOrderDropDown.size = new Vector2(120.0f, 24.0f);
             _sortOrderDropDown.relativePosition = new Vector3(100.0f, 0.0f);
@@ -294,39 +304,30 @@ namespace ImprovedContentManager.UI
             _sortOrderLabel.text = "Direction";
             _sortOrderLabel.relativePosition = new Vector3(0.0f, 9.0f, 0.0f);
 
-            RefreshAssets(true);
+            _categoryContainer = PanelUtil.GetCategoryContainer("m_AssetsContainer");
+            var dict = (Dictionary<string, Comparison<EntryData>>)_categoryContainer.GetType()
+                .GetField("m_SortTypeToImplDict", BindingFlags.NonPublic | BindingFlags.Instance)
+                .GetValue(_categoryContainer);
+            dict["Active"] = Sorting.SortAssetsByActive;
+            dict["Last subscribed"] = Sorting.SortAssetsByLastSubscribed;
+            dict["Last updated"] = Sorting.SortAssetsByLastUpdate;
+            dict["File location"] = Sorting.SortAssetsByLocation;
+            var dropDown = (UIDropDown)_categoryContainer.GetType()
+                .GetField("m_SortBy", BindingFlags.NonPublic | BindingFlags.Instance)
+                .GetValue(_categoryContainer);
+            dropDown.AddItem("Active");
+            dropDown.AddItem("Last subscribed");
+            dropDown.AddItem("Last updated");
+            dropDown.AddItem("File location");
         }
 
-        public static void RefreshAssets(bool forceSortByName = false)
+        public static void RefreshAssets()
         {
-            var contentManagerPanelGameObject = GameObject.Find("(Library) ContentManagerPanel");
-            if (contentManagerPanelGameObject == null)
-            {
-                return;
-            }
-            var contentManagerPanel = contentManagerPanelGameObject.GetComponent<ContentManagerPanel>();
-            if (contentManagerPanel == null)
-            {
-                return;
-            }
-            var m_AssetsContainer =
-                (UIComponent)contentManagerPanel.GetType()
-                    .GetField("m_AssetsContainer", BindingFlags.NonPublic | BindingFlags.Instance)
-                    .GetValue(contentManagerPanel);
-            var categoryContainer = m_AssetsContainer.GetComponent<CategoryContentPanel>();
-
-            if (forceSortByName)
-            {
-                categoryContainer.GetType().GetField("m_SortImpl", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(categoryContainer, new Comparison<EntryData>(
-                    (a, b) => CategoryContentPanelDetour.SortByName(categoryContainer, a, b)));
-            }
-
-            categoryContainer.GetType().GetMethod("SortEntries", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(categoryContainer, new object[] { });
-            categoryContainer.GetType().GetMethod("RefreshVisibleAssets", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(categoryContainer, new object[] { });
-            categoryContainer.GetType().GetMethod("RefreshEntries", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(categoryContainer, new object[] { });
+            _categoryContainer.GetType().GetMethod("SortEntries", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(_categoryContainer, new object[] { });
+            _categoryContainer.GetType().GetMethod("RefreshVisibleAssets", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(_categoryContainer, new object[] { });
+            _categoryContainer.GetType().GetMethod("RefreshEntries", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(_categoryContainer, new object[] { });
         }
 
-        private static readonly object LabelsLock = new object();
         public static void SetAssetCountLabels(Dictionary<AssetType, int> assetTypeIndex)
         {
             lock (LabelsLock)

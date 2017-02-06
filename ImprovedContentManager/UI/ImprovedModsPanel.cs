@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Reflection;
 using ColossalFramework;
 using ColossalFramework.UI;
@@ -14,8 +15,10 @@ namespace ImprovedContentManager.UI
 
     public class ImprovedModsPanel : MonoBehaviour
     {
+        private static CategoryContentPanel _categoryContainer;
 
         private static bool _ui_initialized;
+        private static bool _itemsSorted;
 
         private static UIPanel _sortModePanel;
         private static UIDropDown _sortOrderDropDown;
@@ -41,6 +44,13 @@ namespace ImprovedContentManager.UI
             }
             if (_ui_initialized)
             {
+                if (!_itemsSorted && _categoryContainer.gameObject.GetComponent<UIComponent>().isVisible)
+                {
+                    _categoryContainer.GetType().GetField("m_SortImpl", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(_categoryContainer, new Comparison<EntryData>(
+                        (a, b) => CategoryContentPanelDetour.SortByName(_categoryContainer, a, b)));
+                    RefreshMods();
+                    _itemsSorted = true;
+                }
                 return;
             }
             var contentManagerPanelGameObject = GameObject.Find("(Library) ContentManagerPanel");
@@ -83,6 +93,8 @@ namespace ImprovedContentManager.UI
 
         public void OnDestroy()
         {
+            _itemsSorted = false;
+            _categoryContainer = null;
             _ui_initialized = false;
 
             if (_sortModePanel != null)
@@ -108,8 +120,6 @@ namespace ImprovedContentManager.UI
             var uiView = Object.FindObjectOfType<UIView>();
             var sortByPanel = uiView.FindUIComponent<UIPanel>("Mods").Find<UIPanel>("SortByPanel");
 
-
-
             _sortModePanel = uiView.AddUIComponent(typeof(UIPanel)) as UIPanel;
             _sortModePanel.gameObject.name = "AssetsSortMode";
             _sortModePanel.transform.parent = sortByPanel.transform;
@@ -118,9 +128,6 @@ namespace ImprovedContentManager.UI
             _sortModePanel.size = new Vector2(120.0f, 24.0f);
             _sortModePanel.autoLayout = false;
             _sortModePanel.relativePosition = new Vector3(100, 0);
-
-            //TODO(earalov): add sort mode drop down items and add comparators to dictionary
-
 
             _sortOrderDropDown = UIUtils.CreateDropDownForEnum<SortOrder>(_sortModePanel, "SortOrderDropDown");
             _sortOrderDropDown.size = new Vector2(120.0f, 24.0f);
@@ -137,37 +144,29 @@ namespace ImprovedContentManager.UI
             _sortOrderLabel.relativePosition = new Vector3(0.0f, 9.0f);
             _sortOrderLabel.text = "Direction";
 
-            RefreshMods(true);
+            _categoryContainer = PanelUtil.GetCategoryContainer("m_ModsContainer");
+            var dict = (Dictionary<string, Comparison<EntryData>>)_categoryContainer.GetType()
+                .GetField("m_SortTypeToImplDict", BindingFlags.NonPublic | BindingFlags.Instance)
+                .GetValue(_categoryContainer);
+            dict["Active"] = Sorting.SortPluginsByActive;
+            dict["Last subscribed"] = Sorting.SortPluginsByLastSubscribed;
+            dict["Last updated"] = Sorting.SortPluginsByLastUpdate;
+            dict["File location"] = Sorting.SortPluginsByLocation;
+            var dropDown = (UIDropDown)_categoryContainer.GetType()
+                .GetField("m_SortBy", BindingFlags.NonPublic | BindingFlags.Instance)
+                .GetValue(_categoryContainer);
+            dropDown.AddItem("Active");
+            dropDown.AddItem("Last subscribed");
+            dropDown.AddItem("Last updated");
+            //dropDown.AddItem("File location"); //TODO(earalov): add sorting by location for plugins
         }
 
 
-        public static void RefreshMods(bool forceSortByName = false)
+        public static void RefreshMods()
         {
-            var contentManagerPanelGameObject = GameObject.Find("(Library) ContentManagerPanel");
-            if (contentManagerPanelGameObject == null)
-            {
-                return;
-            }
-            var contentManagerPanel = contentManagerPanelGameObject.GetComponent<ContentManagerPanel>();
-            if (contentManagerPanel == null)
-            {
-                return;
-            }
-            var m_ModsContainer =
-                (UIComponent)contentManagerPanel.GetType()
-                    .GetField("m_ModsContainer", BindingFlags.NonPublic | BindingFlags.Instance)
-                    .GetValue(contentManagerPanel);
-            var categoryContainer = m_ModsContainer.GetComponent<CategoryContentPanel>();
-
-            if (forceSortByName)
-            {
-                categoryContainer.GetType().GetField("m_SortImpl", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(categoryContainer, new Comparison<EntryData>(
-                    (a, b) => CategoryContentPanelDetour.SortByName(categoryContainer, a, b)));
-            }
-
-            categoryContainer.GetType().GetMethod("SortEntries", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(categoryContainer, new object[] {});
-            categoryContainer.GetType().GetMethod("RefreshVisibleAssets", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(categoryContainer, new object[] { });
-            categoryContainer.GetType().GetMethod("RefreshEntries", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(categoryContainer, new object[] { });
+            _categoryContainer.GetType().GetMethod("SortEntries", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(_categoryContainer, new object[] {});
+            _categoryContainer.GetType().GetMethod("RefreshVisibleAssets", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(_categoryContainer, new object[] { });
+            _categoryContainer.GetType().GetMethod("RefreshEntries", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(_categoryContainer, new object[] { });
         }
     }
 

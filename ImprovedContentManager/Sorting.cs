@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using ImprovedContentManager.Detours;
 using ImprovedContentManager.Enums;
 using ImprovedContentManager.Extensions;
@@ -9,7 +10,7 @@ namespace ImprovedContentManager
     {
         public static int SortPluginsByLastUpdate(EntryData a, EntryData b)
         {
-            return SortDirection(a, b, (a1, b1) => (a?.pluginInfo).GetPluginLastModifiedDelta().CompareTo((b?.pluginInfo).GetPluginLastModifiedDelta()));
+            return SortDirection(a, b, (a1, b1) => (a1?.pluginInfo).GetPluginLastModifiedDelta().CompareTo((b1?.pluginInfo).GetPluginLastModifiedDelta()));
         }
 
         public static int SortPluginsByLastSubscribed(EntryData a, EntryData b)
@@ -19,27 +20,48 @@ namespace ImprovedContentManager
 
         public static int SortPluginsByActive(EntryData a, EntryData b)
         {
-            return SortDirection(a, b, (a1, b1) => (a1?.pluginInfo).IsEnabled().CompareTo((b1?.pluginInfo).IsEnabled()), true);
+            return SortDirection(a, b, (a1, b1) => (b1?.pluginInfo).IsEnabled().CompareTo((a1?.pluginInfo).IsEnabled()), true);
         }
 
-        public static int SortPluginsByLocation(EntryData a, EntryData b)
+        public static int SortPluginsByLocation(EntryData a, EntryData b) //TODO(earalov): fix sorting
         {
-            return SortDirection(a, b, (a1, b1) => 0, true); //TODO(earalov): actually compare file locations
+            return SortDirection(a, b, (a1, b1) =>
+            {
+                UnityEngine.Debug.Log((a1?.pluginInfo)?.GetAssemblies().First()?.GetFiles().First()?.Name);
+                var aIsWorkshop = (a1?.pluginInfo)?.GetAssemblies().First()?.GetFiles().First()?.Name?.Contains("workshop") ?? false;
+                var bIsWorkshop = (b1?.pluginInfo)?.GetAssemblies().First()?.GetFiles().First()?.Name?.Contains("workshop") ?? false;
+                if (aIsWorkshop && bIsWorkshop)
+                {
+                    return 0;
+                }
+
+                if (aIsWorkshop)
+                {
+                    return 1;
+                }
+
+                if (bIsWorkshop)
+                {
+                    return -1;
+                }
+
+                return 0;
+            }, true);
         }
 
         public static int SortAssetsByLastUpdate(EntryData a, EntryData b)
         {
-            return SortDirection(a, b, (a1, b1) => (a?.asset).GetAssetLastModifiedDelta().CompareTo((b?.asset).GetAssetLastModifiedDelta()));
+            return SortDirection(a, b, (a1, b1) => (a1?.asset).GetAssetLastModifiedDelta().CompareTo((b1?.asset).GetAssetLastModifiedDelta()));
         }
 
         public static int SortAssetsByLastSubscribed(EntryData a, EntryData b)
         {
-            return SortDirection(a, b, (a1, b1) => (a?.asset).GetAssetCreatedDelta().CompareTo((b?.asset).GetAssetCreatedDelta()));
+            return SortDirection(a, b, (a1, b1) => (a1?.asset).GetAssetCreatedDelta().CompareTo((b1?.asset).GetAssetCreatedDelta()));
         }
 
         public static int SortAssetsByActive(EntryData a, EntryData b)
         {
-            return SortDirection(a, b, (a1, b1) => (b?.asset).IsEnabled().CompareTo((a?.asset).IsEnabled()), true);
+            return SortDirection(a, b, (a1, b1) => (b1?.asset).IsEnabled().CompareTo((a1?.asset).IsEnabled()), true);
         }
 
         public static int SortAssetsByLocation(EntryData a, EntryData b)
@@ -71,7 +93,7 @@ namespace ImprovedContentManager
         {
             var ascending = CategoryContentPanelDetour._pluginSortOrder == SortOrder.Ascending;
             var diff = ascending ? comparsion.Invoke(a, b) : comparsion.Invoke(b, a);
-            return diff == 0 || alphabeticalSort ? (ascending ? a.CompareNames(b) : b.CompareNames(a)) : diff;
+            return diff == 0 && alphabeticalSort ? a.CompareNames(b) : diff;
         }
     }
 }
