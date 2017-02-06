@@ -20,7 +20,6 @@ namespace ImprovedContentManager.UI
         private static UIPanel _sortModePanel;
         private static UIDropDown _sortOrderDropDown;
         private static UILabel _sortOrderLabel;
-        private static UIPanel _sortOptions;
 
         public static void Bootstrap()
         {
@@ -101,45 +100,30 @@ namespace ImprovedContentManager.UI
                 Object.Destroy(_sortOrderLabel.gameObject);
                 _sortOrderLabel = null;
             }
-            if (_sortOptions != null)
-            {
-                Object.Destroy(_sortOptions.gameObject);
-                _sortOptions = null;
-            }
             CategoryContentPanelDetour._pluginSortOrder = SortOrder.Ascending;
         }
 
         private static void Initialize()
         {
-            var moarGroupObj = GameObject.Find("MoarGroup");
-            var moarGroup = moarGroupObj.GetComponent<UIPanel>();
-            var moarLabel = moarGroup.Find<UILabel>("Moar");
-            var moarButton = moarGroup.Find<UIButton>("Button");
-
-            moarGroup.position = new Vector3(moarGroup.position.x, -6.0f, moarGroup.position.z);
-
-            moarLabel.isVisible = false;
-            moarButton.isVisible = false;
-
             var uiView = Object.FindObjectOfType<UIView>();
+            var sortByPanel = uiView.FindUIComponent<UIPanel>("Mods").Find<UIPanel>("SortByPanel");
 
-            _sortOptions = uiView.AddUIComponent(typeof(UIPanel)) as UIPanel;
-            _sortOptions.transform.parent = moarGroup.transform;
-            _sortOptions.size = new Vector2(200.0f, 24.0f);
+
 
             _sortModePanel = uiView.AddUIComponent(typeof(UIPanel)) as UIPanel;
             _sortModePanel.gameObject.name = "AssetsSortMode";
-            _sortModePanel.transform.parent = _sortOptions.transform;
+            _sortModePanel.transform.parent = sortByPanel.transform;
             _sortModePanel.name = "AssetsSortMode";
-            _sortModePanel.AlignTo(_sortOptions, UIAlignAnchor.TopLeft);
-            _sortModePanel.size = new Vector2(100.0f, 24.0f);
+            _sortModePanel.AlignTo(sortByPanel, UIAlignAnchor.TopLeft);
+            _sortModePanel.size = new Vector2(120.0f, 24.0f);
             _sortModePanel.autoLayout = false;
+            _sortModePanel.relativePosition = new Vector3(100, 0);
 
             //TODO(earalov): add sort mode drop down items and add comparators to dictionary
 
 
             _sortOrderDropDown = UIUtils.CreateDropDownForEnum<SortOrder>(_sortModePanel, "SortOrderDropDown");
-            _sortOrderDropDown.size = new Vector2(100.0f, 24.0f);
+            _sortOrderDropDown.size = new Vector2(120.0f, 24.0f);
             _sortOrderDropDown.relativePosition = new Vector3(100.0f, 0.0f);
             _sortOrderDropDown.eventSelectedIndexChanged += (component, value) =>
             {
@@ -149,9 +133,9 @@ namespace ImprovedContentManager.UI
                 _sortOrderDropDown.enabled = true;
             };
 
-            _sortOrderLabel = UIUtils.CreateLabel(_sortOrderDropDown);
+            _sortOrderLabel = UIUtils.CreateLabel(_sortModePanel);
+            _sortOrderLabel.relativePosition = new Vector3(0.0f, 9.0f);
             _sortOrderLabel.text = "Direction";
-            _sortOrderLabel.relativePosition = new Vector3(0.0f, -2.0f, 0.0f);
         }
 
 
@@ -159,11 +143,7 @@ namespace ImprovedContentManager.UI
         {
             UnityEngine.Debug.Log("U");
             var contentManagerPanelGameObject = GameObject.Find("(Library) ContentManagerPanel");
-            if (contentManagerPanelGameObject == null)
-            {
-                return;
-            }
-            var contentManagerPanel = contentManagerPanelGameObject.GetComponent<ContentManagerPanel>();
+            var contentManagerPanel = contentManagerPanelGameObject?.GetComponent<ContentManagerPanel>();
             if (contentManagerPanel == null)
             {
                 return;

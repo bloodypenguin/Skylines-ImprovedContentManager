@@ -14,7 +14,6 @@ namespace ImprovedContentManager.Util
             label.transform.parent = parent.transform;
             label.AlignTo(parent, UIAlignAnchor.TopLeft);
             label.textColor = Color.white;
-            label.textScale = 0.5f;
             return label;
         }
 
@@ -34,7 +33,7 @@ namespace ImprovedContentManager.Util
             dropDown.listWidth = 90;
             dropDown.listHeight = 200;
             dropDown.foregroundSpriteMode = UIForegroundSpriteMode.Stretch;
-            dropDown.popupColor = new Color32(45, 52, 61, 255);
+            dropDown.popupColor = Color.white;
             dropDown.popupTextColor = new Color32(170, 170, 170, 255);
             dropDown.zOrder = 1;
             dropDown.verticalAlignment = UIVerticalAlignment.Middle;
@@ -45,6 +44,7 @@ namespace ImprovedContentManager.Util
             dropDown.listPadding = new RectOffset(4, 4, 4, 4);
             dropDown.listPosition = UIDropDown.PopupListPosition.Automatic;
             dropDown.triggerButton = dropDown;
+            dropDown.hoveredBgSprite = "CMStylesDropboxHovered";
 
             dropDown.eventSizeChanged += (c, t) =>
             {
@@ -58,7 +58,6 @@ namespace ImprovedContentManager.Util
             var dropdown = CreateDropDown(parent);
             dropdown.name = name;
             dropdown.size = new Vector2(120.0f, 16.0f);
-            dropdown.textScale = 0.7f;
 
             var enumValues = Enum.GetValues(typeof(T));
             dropdown.items = new string[enumValues.Length];
@@ -71,6 +70,20 @@ namespace ImprovedContentManager.Util
             }
             dropdown.selectedIndex = 0;
             return dropdown;
+        }
+
+        public static UIButton CreateButton(UIComponent parent)
+        {
+            var button = parent.AddUIComponent<UIButton>();
+            button.size = new Vector2(200.0f, 24.0f);
+            button.AlignTo(parent, UIAlignAnchor.TopLeft);
+            button.normalBgSprite = "ButtonMenu";
+            //            refreshCounters.hoveredBgSprite = "ButtonMenuHovered";
+            button.pressedBgSprite = "ButtonMenuPressed";
+            button.disabledBgSprite = "ButtonMenuDisabled";
+            button.hoveredColor = new Color32(254, 254, 254, 255);
+            button.hoveredTextColor = new Color32(7, 132, 255, 255);
+            return button;
         }
     }
 }
