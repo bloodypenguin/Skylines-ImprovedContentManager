@@ -293,9 +293,11 @@ namespace ImprovedContentManager.UI
             _sortOrderLabel = UIUtils.CreateLabel(_sortModePanel);
             _sortOrderLabel.text = "Direction";
             _sortOrderLabel.relativePosition = new Vector3(0.0f, 9.0f, 0.0f);
+
+            RefreshAssets(true);
         }
 
-        private static void RefreshAssets()
+        public static void RefreshAssets(bool forceSortByName = false)
         {
             var contentManagerPanelGameObject = GameObject.Find("(Library) ContentManagerPanel");
             if (contentManagerPanelGameObject == null)
@@ -307,11 +309,21 @@ namespace ImprovedContentManager.UI
             {
                 return;
             }
-            object m_AssetsContainer =
-                contentManagerPanel.GetType()
+            var m_AssetsContainer =
+                (UIComponent)contentManagerPanel.GetType()
                     .GetField("m_AssetsContainer", BindingFlags.NonPublic | BindingFlags.Instance)
                     .GetValue(contentManagerPanel);
-            contentManagerPanel.GetType().GetMethod("RefreshCategory", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(contentManagerPanel, new object[] { m_AssetsContainer });
+            var categoryContainer = m_AssetsContainer.GetComponent<CategoryContentPanel>();
+
+            if (forceSortByName)
+            {
+                categoryContainer.GetType().GetField("m_SortImpl", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(categoryContainer, new Comparison<EntryData>(
+                    (a, b) => CategoryContentPanelDetour.SortByName(categoryContainer, a, b)));
+            }
+
+            categoryContainer.GetType().GetMethod("SortEntries", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(categoryContainer, new object[] { });
+            categoryContainer.GetType().GetMethod("RefreshVisibleAssets", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(categoryContainer, new object[] { });
+            categoryContainer.GetType().GetMethod("RefreshEntries", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(categoryContainer, new object[] { });
         }
 
         private static readonly object LabelsLock = new object();

@@ -129,38 +129,45 @@ namespace ImprovedContentManager.UI
             {
                 _sortOrderDropDown.enabled = false;
                 CategoryContentPanelDetour._pluginSortOrder = (SortOrder)value;
-                RefreshPlugins();
+                RefreshMods();
                 _sortOrderDropDown.enabled = true;
             };
 
             _sortOrderLabel = UIUtils.CreateLabel(_sortModePanel);
             _sortOrderLabel.relativePosition = new Vector3(0.0f, 9.0f);
             _sortOrderLabel.text = "Direction";
+
+            RefreshMods(true);
         }
 
 
-        private static void RefreshPlugins()
+        public static void RefreshMods(bool forceSortByName = false)
         {
-            UnityEngine.Debug.Log("U");
             var contentManagerPanelGameObject = GameObject.Find("(Library) ContentManagerPanel");
-            var contentManagerPanel = contentManagerPanelGameObject?.GetComponent<ContentManagerPanel>();
+            if (contentManagerPanelGameObject == null)
+            {
+                return;
+            }
+            var contentManagerPanel = contentManagerPanelGameObject.GetComponent<ContentManagerPanel>();
             if (contentManagerPanel == null)
             {
                 return;
             }
+            var m_ModsContainer =
+                (UIComponent)contentManagerPanel.GetType()
+                    .GetField("m_ModsContainer", BindingFlags.NonPublic | BindingFlags.Instance)
+                    .GetValue(contentManagerPanel);
+            var categoryContainer = m_ModsContainer.GetComponent<CategoryContentPanel>();
 
-            var categoryContainerGameObject = GameObject.Find("CategoryContainer");
-            if (categoryContainerGameObject == null)
+            if (forceSortByName)
             {
-                return;
+                categoryContainer.GetType().GetField("m_SortImpl", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(categoryContainer, new Comparison<EntryData>(
+                    (a, b) => CategoryContentPanelDetour.SortByName(categoryContainer, a, b)));
             }
-            UnityEngine.Debug.Log("Y");
-//            this.SortEntries();
-//            this.RefreshVisibleAssets();
-//            this.RefreshEntries();
 
-
-            contentManagerPanel.GetType().GetMethod("RefreshPlugins", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(contentManagerPanel, new object [] {});
+            categoryContainer.GetType().GetMethod("SortEntries", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(categoryContainer, new object[] {});
+            categoryContainer.GetType().GetMethod("RefreshVisibleAssets", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(categoryContainer, new object[] { });
+            categoryContainer.GetType().GetMethod("RefreshEntries", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(categoryContainer, new object[] { });
         }
     }
 

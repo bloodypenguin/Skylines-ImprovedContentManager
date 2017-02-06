@@ -78,20 +78,20 @@ namespace ImprovedContentManager.Detours
         }
 
         [RedirectMethod]
-        private int SortByName(EntryData a, EntryData b)
+        public static int SortByName(CategoryContentPanel panel, EntryData a, EntryData b)
         {
             UnityEngine.Debug.Log("B");
             //begin mod
-            return Sorting.SecondarySort(a, b, (a1, b1) => 0);
+            return Sorting.SortDirection(a, b, (a1, b1) => 0, true);
             //end mod
         }
 
         [RedirectMethod]
-        private int SortByAuthor(EntryData a, EntryData b)
+        public static int SortByAuthor(CategoryContentPanel panel, EntryData a, EntryData b)
         {
             UnityEngine.Debug.Log("A");
             //begin mod
-            return Sorting.SecondarySort(a, b, (a1, b1) => a1.CompareAuthors(b1), true);
+            return Sorting.SortDirection(a, b, (a1, b1) => a1.CompareAuthors(b1), true);
             //end mod
         }
 
