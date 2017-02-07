@@ -172,7 +172,7 @@ namespace ImprovedContentManager.UI
 
                 count++;
                 var buttonsRow = count <= columnCount ? 0 : 1;
-                var button = _buttonsPanel.AddUIComponent(typeof(UIButton)) as UIButton;
+                var button = UIUtils.CreateButton(_buttonsPanel);
                 button.size = new Vector2(buttonHeight, buttonHeight);
                 button.tooltip = assetType.ToString();
 
@@ -289,7 +289,7 @@ namespace ImprovedContentManager.UI
 
             _sortOrderLabel = UIUtils.CreateLabel(_sortModePanel);
             _sortOrderLabel.text = "Direction";
-            _sortOrderLabel.relativePosition = new Vector3(0.0f, 9.0f, 0.0f);
+            _sortOrderLabel.relativePosition = new Vector3(0.0f, 9.0f);
 
             _categoryContainer = PanelUtil.GetCategoryContainer("m_AssetsContainer");
             var dict = (Dictionary<string, Comparison<EntryData>>)_categoryContainer.GetType()

@@ -95,7 +95,7 @@ namespace ImprovedContentManager
 
         public static int SortDirection(EntryData a, EntryData b, Comparison<EntryData> comparsion, bool alphabeticalSort = false)
         {
-            var ascending = _pluginSortOrder == SortOrder.Ascending;
+            var ascending = (a.pluginInfo != null || b.pluginInfo != null) ? _pluginSortOrder == SortOrder.Ascending : _assetSortOrder == SortOrder.Ascending;
             var diff = @ascending ? comparsion.Invoke(a, b) : comparsion.Invoke(b, a);
             return diff == 0 && alphabeticalSort ? a.CompareNames(b) : diff;
         }
