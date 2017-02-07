@@ -5,7 +5,6 @@ using ColossalFramework;
 using ColossalFramework.UI;
 using ImprovedContentManager.Detours;
 using ImprovedContentManager.Enums;
-using ImprovedContentManager.Util;
 using UnityEngine;
 using Object = UnityEngine.Object;
 using UIUtils = ImprovedContentManager.Util.UIUtils;
@@ -112,7 +111,7 @@ namespace ImprovedContentManager.UI
                 Object.Destroy(_sortOrderLabel.gameObject);
                 _sortOrderLabel = null;
             }
-            CategoryContentPanelDetour._pluginSortOrder = SortOrder.Ascending;
+            Sorting._pluginSortOrder = SortOrder.Ascending;
         }
 
         private static void Initialize()
@@ -135,7 +134,7 @@ namespace ImprovedContentManager.UI
             _sortOrderDropDown.eventSelectedIndexChanged += (component, value) =>
             {
                 _sortOrderDropDown.enabled = false;
-                CategoryContentPanelDetour._pluginSortOrder = (SortOrder)value;
+                Sorting._pluginSortOrder = (SortOrder)value;
                 RefreshMods();
                 _sortOrderDropDown.enabled = true;
             };

@@ -1,16 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
 using System.Reflection;
 using ColossalFramework;
-using ColossalFramework.Packaging;
 using ColossalFramework.UI;
 using ImprovedContentManager.Detours;
 using ImprovedContentManager.Enums;
 using ImprovedContentManager.Extensions;
-using ImprovedContentManager.Redirection;
-using ImprovedContentManager.Util;
 using UnityEngine;
 using Object = UnityEngine.Object;
 using UIUtils = ImprovedContentManager.Util.UIUtils;
@@ -31,6 +26,7 @@ namespace ImprovedContentManager.UI
 
         private static List<UIButton> _assetTypeButtons = new List<UIButton>();
         private static Dictionary<AssetType, UILabel> _assetTypeLabels = null;
+        public static Dictionary<AssetType, int> _assetTypeIndex = new Dictionary<AssetType, int>();
 
         private static bool _ui_initialized;
         private static bool _itemsSorted;
@@ -60,11 +56,6 @@ namespace ImprovedContentManager.UI
                         (a, b) => CategoryContentPanelDetour.SortByName(_categoryContainer, a, b)));
                     RefreshAssets();
                     _itemsSorted = true;
-                }
-                if (CategoryContentPanelDetour.refreshLabelsFlag)
-                {
-                    SetAssetCountLabels(CategoryContentPanelDetour._assetTypeIndex);
-                    CategoryContentPanelDetour.refreshLabelsFlag = false;
                 }
                 return;
             }
@@ -133,8 +124,8 @@ namespace ImprovedContentManager.UI
                 _actionsPanel = null;
             }
 
-            CategoryContentPanelDetour._assetFilterMode = AssetType.All;
-            CategoryContentPanelDetour._assetSortOrder = SortOrder.Ascending;
+            Filtering._assetFilterMode = AssetType.All;
+            Sorting._assetSortOrder = SortOrder.Ascending;
 
             _assetTypeButtons = new List<UIButton>();
             lock (LabelsLock)
@@ -243,7 +234,7 @@ namespace ImprovedContentManager.UI
                 var type = assetType;
                 button.eventClick += (component, param) =>
                 {
-                    CategoryContentPanelDetour._assetFilterMode = type;
+                    Filtering._assetFilterMode = type;
 
                     foreach (var item in _assetTypeButtons)
                     {
@@ -251,9 +242,7 @@ namespace ImprovedContentManager.UI
                     }
 
                     button.opacity = 1.0f;
-                    CategoryContentPanelDetour.dontRefreshLabels = true;
                     RefreshAssets();
-                    CategoryContentPanelDetour.dontRefreshLabels = false;
                 };
 
                 _assetTypeButtons.Add(button);
@@ -293,10 +282,8 @@ namespace ImprovedContentManager.UI
             _sortOrderDropDown.eventSelectedIndexChanged += (component, value) =>
             {
                 _sortOrderDropDown.enabled = false;
-                CategoryContentPanelDetour._assetSortOrder = (SortOrder)value;
-                CategoryContentPanelDetour.dontRefreshLabels = true;
+                Sorting._assetSortOrder = (SortOrder)value;
                 RefreshAssets();
-                CategoryContentPanelDetour.dontRefreshLabels = false;
                 _sortOrderDropDown.enabled = true;
             };
 
@@ -319,6 +306,10 @@ namespace ImprovedContentManager.UI
             dropDown.AddItem("Last subscribed");
             dropDown.AddItem("Last updated");
             dropDown.AddItem("File location");
+            refreshCounters.eventClick += (component, param) =>
+            {
+                SetAssetCountLabels();
+            };
         }
 
         public static void RefreshAssets()
@@ -328,10 +319,12 @@ namespace ImprovedContentManager.UI
             _categoryContainer.GetType().GetMethod("RefreshEntries", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(_categoryContainer, new object[] { });
         }
 
-        public static void SetAssetCountLabels(Dictionary<AssetType, int> assetTypeIndex)
+        private static void SetAssetCountLabels()
         {
+
             lock (LabelsLock)
             {
+                var assetTypeIndex = CategoryContentPanelDetour.CountAssets(_categoryContainer);
                 if (_assetTypeLabels == null)
                 {
                     return;
