@@ -1,16 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using ColossalFramework;
 using ColossalFramework.Packaging;
-using ColossalFramework.PlatformServices;
-using ColossalFramework.Plugins;
-using ColossalFramework.UI;
 using ImprovedContentManager.Enums;
 using ImprovedContentManager.Extensions;
 using ImprovedContentManager.Redirection.Attributes;
-using UnityEngine;
 
 namespace ImprovedContentManager.Detours
 {
@@ -18,37 +14,17 @@ namespace ImprovedContentManager.Detours
     [TargetType(typeof(CategoryContentPanel))]
     public class CategoryContentPanelDetour : CategoryContentPanel
     {
-        public static SortOrder _pluginSortOrder = SortOrder.Ascending;
-
-        public static SortOrder _assetSortOrder = SortOrder.Ascending;
-        public static AssetType _assetFilterMode = AssetType.All;
-
-        public static Dictionary<AssetType, int> _assetTypeIndex = new Dictionary<AssetType, int>();
-        public static bool dontRefreshLabels = false;
-        public static bool refreshLabelsFlag = false;
-        
-
         [RedirectMethod]
-        private void RefreshAssetsImpl()
+        private void RefreshVisibleAssets()
         {
-            this.m_Assets = new List<EntryData>();
-            foreach (Package.Asset filterAsset in PackageManager.FilterAssets(this.m_AssetType))
+            this.m_VisibleAssets = new List<EntryData>();
+            using (List<EntryData>.Enumerator enumerator = this.m_Assets.GetEnumerator())
             {
-                if (!(this.m_AssetType == UserAssetType.SaveGameMetaData) || !PackageHelper.IsDemoModeSave(filterAsset))
+                while (enumerator.MoveNext())
                 {
-                    if (this.m_OnlyMain)
-                    {
-                        if (!filterAsset.isMainAsset)
-                            continue;
-                    }
-                    try
-                    {
-                        this.m_Assets.Add(new EntryData(filterAsset));
-                    }
-                    catch
-                    {
-                        Debug.LogError((object)("Failed to create content manager entry for asset " + filterAsset.name));
-                    }
+                    EntryData current = enumerator.Current;
+                    if (current.IsMatch(this.m_Search))
+                        this.m_VisibleAssets.Add(current);
                 }
             }
             //begin mod
@@ -56,16 +32,12 @@ namespace ImprovedContentManager.Detours
             {
                 return;
             }
-            this.m_Assets = Filtering.FilterDisplayedAssets(this.m_Assets, out _assetTypeIndex);
-            if (!dontRefreshLabels)
-            {
-                refreshLabelsFlag = true;
-            }
+            this.m_VisibleAssets = Filtering.FilterDisplayedAssets(this.m_VisibleAssets);
             //end mod
         }
 
         [RedirectMethod]
-        public void SetActiveAll(bool enabled)
+        public new void SetActiveAll(bool enabled)
         {
             //begin mod
             using (List<EntryData>.Enumerator enumerator = this.m_VisibleAssets.GetEnumerator())
@@ -76,6 +48,48 @@ namespace ImprovedContentManager.Detours
             }
             this.RefreshEntries();
         }
+
+        public static Dictionary<AssetType, int> CountAssets(CategoryContentPanel panel)
+        {
+            var index = Enum.GetValues(typeof(AssetType)).Cast<AssetType>().ToDictionary(assetType => assetType, assetType => 0);
+
+            var entryDataList = (List<EntryData>)typeof(CategoryContentPanel).GetField("m_Assets",
+                BindingFlags.NonPublic | BindingFlags.Instance).GetValue(panel);
+            foreach (var e in entryDataList)
+            {
+                index[AssetType.All]++;
+                CustomAssetMetaData customAssetMetaData;
+                try
+                {
+                    customAssetMetaData = e?.asset?.Instantiate<CustomAssetMetaData>();
+                }
+                catch (Exception)
+                {
+                    index[AssetType.Unknown]++;
+                    continue;
+                }
+                if (customAssetMetaData == null)
+                {
+                    index[AssetType.Unknown]++;
+                    continue;
+                }
+                var tags = customAssetMetaData.steamTags;
+                foreach (AssetType assetType in Enum.GetValues(typeof(AssetType)))
+                {
+                    if (assetType == AssetType.All || assetType == AssetType.Unknown)
+                    {
+                        continue;
+                    }
+                    if (Filtering.ContainsTag(tags,
+                        assetType.GetEnumDescription<AssetType, AssetTypeAttribute>().SteamTag))
+                    {
+                        index[assetType]++;
+                    }
+                }
+            }
+            return index;
+        }
+
 
         [RedirectMethod]
         public static int SortByName(CategoryContentPanel panel, EntryData a, EntryData b)
@@ -100,28 +114,28 @@ namespace ImprovedContentManager.Detours
             UnityEngine.Debug.LogError("CategoryContentPanelDetour - Failed to detour RefreshEntries()");
         }
 
-        private List<EntryData> m_Assets
+        private List<EntryData> m_Assets => (List<EntryData>)typeof(CategoryContentPanel).GetField("m_Assets",
+            BindingFlags.NonPublic | BindingFlags.Instance).GetValue(this);
+
+        private List<EntryData> m_VisibleAssets
         {
             get
             {
-                return (List<EntryData>)typeof(CategoryContentPanel).GetField("m_Assets",
-            BindingFlags.NonPublic | BindingFlags.Instance).GetValue(this);
+                return (List<EntryData>)typeof(CategoryContentPanel).GetField("m_VisibleAssets",
+                    BindingFlags.NonPublic | BindingFlags.Instance).GetValue(this);
             }
             set
             {
-                typeof(CategoryContentPanel).GetField("m_Assets",
-            BindingFlags.NonPublic | BindingFlags.Instance).SetValue(this, value);
+                typeof(CategoryContentPanel).GetField("m_VisibleAssets",
+                    BindingFlags.NonPublic | BindingFlags.Instance).SetValue(this, value);
             }
         }
-
-        private List<EntryData> m_VisibleAssets => (List<EntryData>)typeof(CategoryContentPanel).GetField("m_VisibleAssets",
-            BindingFlags.NonPublic | BindingFlags.Instance).GetValue(this);
 
 
         private Package.AssetType m_AssetType => (Package.AssetType)typeof(CategoryContentPanel).GetField("m_AssetType",
             BindingFlags.NonPublic | BindingFlags.Instance).GetValue(this);
 
-        private bool m_OnlyMain => (bool)typeof(CategoryContentPanel).GetField("m_OnlyMain",
-            BindingFlags.NonPublic | BindingFlags.Instance).GetValue(this);
+        private string m_Search => (string)typeof(CategoryContentPanel).GetField("m_Search",
+    BindingFlags.NonPublic | BindingFlags.Instance).GetValue(this);
     }
 }
