@@ -10,7 +10,6 @@ using ImprovedContentManager.Redirection.Attributes;
 
 namespace ImprovedContentManager.Detours
 {
-    //TODO(earalov): add direction support for standard sortings
     [TargetType(typeof(CategoryContentPanel))]
     public class CategoryContentPanelDetour : CategoryContentPanel
     {
