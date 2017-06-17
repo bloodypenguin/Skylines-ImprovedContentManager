@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using ColossalFramework;
 using ColossalFramework.Packaging;
 using ImprovedContentManager.Enums;
 using ImprovedContentManager.Extensions;
@@ -39,12 +40,15 @@ namespace ImprovedContentManager.Detours
         public new void SetActiveAll(bool enabled)
         {
             //begin mod
-            using (List<EntryData>.Enumerator enumerator = this.m_VisibleAssets.GetEnumerator())
+            foreach (EntryData asset in this.m_VisibleAssets)
             {
                 //end mod
-                while (enumerator.MoveNext())
-                    enumerator.Current.SetActive(enabled);
+                if (asset.IsActive() != enabled && Singleton<PopsManager>.exists)
+                    Singleton<PopsManager>.instance.BufferUGCManaged(asset.GetNameForTelemetry(), enabled);
+                asset.SetActive(enabled);
             }
+            if (Singleton<PopsManager>.exists)
+                Singleton<PopsManager>.instance.Push();
             this.RefreshEntries();
         }
 

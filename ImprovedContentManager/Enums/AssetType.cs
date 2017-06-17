@@ -74,6 +74,14 @@
         TransportShip,
         [AssetType(SteamHelper.kSteamTagTransportPlane, "SubBarPublicTransportPlane")]
         TransportPlane,
+        [AssetType(SteamHelper.kSteamTagTransportTaxi, "SubBarPublicTransportTaxi")]
+        TransportTaxi,
+        [AssetType(SteamHelper.kSteamTagTransportTram, "SubBarPublicTransportTram")]
+        TransportTram,
+        [AssetType(SteamHelper.kSteamTagTransportTram, "SubBarPublicTransportMonorail")]
+        TransportMonorail,
+        [AssetType(SteamHelper.kSteamTagTransportCableCar, "SubBarPublicTransportCableCar")]
+        TransportCableCar,
         [AssetType(SteamHelper.kSteamTagUniqueBuilding, "ToolbarIconMonuments")]
         UniqueBuilding,
         [AssetType(SteamHelper.kSteamTagMonument, "ToolbarIconWonders")]
@@ -81,6 +89,8 @@
         [AssetType(SteamHelper.kSteamTagColorCorrectionLUT, null)]
         ColorLut,
         [AssetType(SteamHelper.kSteamTagVehicle, "InfoIconTrafficCongestion")]
-        Vehicle
+        Vehicle,
+        [AssetType(SteamHelper.kSteamTagCitizen, "InfoIconPopulation")]
+        Citizen
     }
 }

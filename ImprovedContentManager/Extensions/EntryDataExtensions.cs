@@ -1,4 +1,5 @@
 ﻿using System;
+using ColossalFramework.PlatformServices;
 
 namespace ImprovedContentManager.Extensions
 {
@@ -20,16 +21,29 @@ namespace ImprovedContentManager.Extensions
 
         public static int CompareAuthors(this EntryData a, EntryData b)
         {
-            if (a?.authorName == null)
-            {
+            if (a.publishedFileId != PublishedFileId.invalid && b.publishedFileId == PublishedFileId.invalid)
                 return 1;
-            }
-
-            if (b?.authorName == null)
-            {
+            if (a.publishedFileId == PublishedFileId.invalid && b.publishedFileId != PublishedFileId.invalid)
                 return -1;
+            if (a.publishedFileId != PublishedFileId.invalid && b.publishedFileId != PublishedFileId.invalid)
+            {
+                if (a.authorName == null)
+                {
+                    return 1;
+                }
+                if (b.authorName == null)
+                {
+                    return -1;
+                }
+                return a.authorName.CompareTo(b.authorName);
             }
-            return string.Compare(a.authorName, b.authorName, StringComparison.InvariantCultureIgnoreCase);
+            if (!(a.publishedFileId == PublishedFileId.invalid) || !(b.publishedFileId == PublishedFileId.invalid))
+                return 0;
+            if (a.IsBuiltin() && !b.IsBuiltin())
+                return -1;
+            if (!a.IsBuiltin() && b.IsBuiltin())
+                return 1;
+            return 0;
         }
     }
 }

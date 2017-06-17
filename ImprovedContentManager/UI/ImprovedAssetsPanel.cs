@@ -261,9 +261,10 @@ namespace ImprovedContentManager.UI
 
             _actionsPanel = uiView.AddUIComponent(typeof(UIPanel)) as UIPanel;
             _actionsPanel.transform.parent = moarGroup.transform;
-            _actionsPanel.size = new Vector2(200.0f, 24.0f);
+            _actionsPanel.size = new Vector2(150.0f, 24.0f);
 
             var refreshCounters = UIUtils.CreateButton(_actionsPanel);
+            refreshCounters.width = 150f;
             refreshCounters.text = "Count assets";
 
             var sortByPanel = uiView.FindUIComponent<UIPanel>("Assets").Find<UIPanel>("SortByPanel");
