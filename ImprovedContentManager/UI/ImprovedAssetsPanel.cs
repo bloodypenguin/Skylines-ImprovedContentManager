@@ -20,8 +20,6 @@ namespace ImprovedContentManager.UI
 
         private static UIPanel _buttonsPanel;
         private static UIPanel _sortModePanel;
-        private static UIDropDown _sortOrderDropDown;
-        private static UILabel _sortOrderLabel;
         private static UIPanel _actionsPanel;
 
         private static List<UIButton> _assetTypeButtons = new List<UIButton>();
@@ -53,7 +51,7 @@ namespace ImprovedContentManager.UI
                 if (!_itemsSorted && _categoryContainer.gameObject.GetComponent<UIComponent>().isVisible)
                 {
                     _categoryContainer.GetType().GetField("m_SortImpl", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(_categoryContainer, new Comparison<EntryData>(
-                        (a, b) => CategoryContentPanelDetour.SortByName(_categoryContainer, a, b)));
+                        EntryData.SortByName));
                     RefreshAssets();
                     _itemsSorted = true;
                 }
@@ -103,16 +101,6 @@ namespace ImprovedContentManager.UI
                 Object.Destroy(_sortModePanel.gameObject);
                 _sortModePanel = null;
             }
-            if (_sortOrderDropDown != null)
-            {
-                Object.Destroy(_sortOrderDropDown.gameObject);
-                _sortOrderDropDown = null;
-            }
-            if (_sortOrderLabel != null)
-            {
-                Object.Destroy(_sortOrderLabel.gameObject);
-                _sortOrderLabel = null;
-            }
             if (_buttonsPanel != null)
             {
                 Object.Destroy(_buttonsPanel.gameObject);
@@ -125,7 +113,6 @@ namespace ImprovedContentManager.UI
             }
 
             Filtering._assetFilterMode = AssetType.All;
-            Sorting._assetSortOrder = SortOrder.Ascending;
 
             _assetTypeButtons = new List<UIButton>();
             lock (LabelsLock)
@@ -277,36 +264,21 @@ namespace ImprovedContentManager.UI
             _sortModePanel.size = new Vector2(120.0f, 24.0f);
             _sortModePanel.autoLayout = false;
 
-            _sortOrderDropDown = UIUtils.CreateDropDownForEnum<SortOrder>(_sortModePanel, "SortOrderDropDown");
-            _sortOrderDropDown.size = new Vector2(120.0f, 24.0f);
-            _sortOrderDropDown.relativePosition = new Vector3(100.0f, 0.0f);
-            _sortOrderDropDown.eventSelectedIndexChanged += (component, value) =>
-            {
-                _sortOrderDropDown.enabled = false;
-                Sorting._assetSortOrder = (SortOrder)value;
-                RefreshAssets();
-                _sortOrderDropDown.enabled = true;
-            };
-
-            _sortOrderLabel = UIUtils.CreateLabel(_sortModePanel);
-            _sortOrderLabel.text = "Direction";
-            _sortOrderLabel.relativePosition = new Vector3(0.0f, 9.0f);
-
             _categoryContainer = PanelUtil.GetCategoryContainer("m_AssetsContainer");
-            var dict = (Dictionary<string, Comparison<EntryData>>)_categoryContainer.GetType()
-                .GetField("m_SortTypeToImplDict", BindingFlags.NonPublic | BindingFlags.Instance)
-                .GetValue(_categoryContainer);
-            dict["Active"] = Sorting.SortAssetsByActive;
-            dict["Last subscribed"] = Sorting.SortAssetsByLastSubscribed;
-            dict["Last updated"] = Sorting.SortAssetsByLastUpdate;
-            dict["File location"] = Sorting.SortAssetsByLocation;
-            var dropDown = (UIDropDown)_categoryContainer.GetType()
-                .GetField("m_SortBy", BindingFlags.NonPublic | BindingFlags.Instance)
-                .GetValue(_categoryContainer);
-            dropDown.AddItem("Active");
-            dropDown.AddItem("Last subscribed");
-            dropDown.AddItem("Last updated");
-            dropDown.AddItem("File location");
+//            var dict = (Dictionary<string, Comparison<EntryData>>)_categoryContainer.GetType()
+//                .GetField("m_SortTypeToImplDict", BindingFlags.NonPublic | BindingFlags.Static)
+//                .GetValue(_categoryContainer);
+//            dict["Active"] = Sorting.SortAssetsByActive;
+//            dict["Last subscribed"] = Sorting.SortAssetsByLastSubscribed;
+//            dict["Last updated"] = Sorting.SortAssetsByLastUpdate;
+//            dict["File location"] = Sorting.SortAssetsByLocation;
+//            var dropDown = (UIDropDown)_categoryContainer.GetType()
+//                .GetField("m_SortBy", BindingFlags.NonPublic | BindingFlags.Instance)
+//                .GetValue(_categoryContainer);
+//            dropDown.AddItem("Active");
+//            dropDown.AddItem("Last subscribed");
+//            dropDown.AddItem("Last updated");
+//            dropDown.AddItem("File location");
             refreshCounters.eventClick += (component, param) =>
             {
                 SetAssetCountLabels();

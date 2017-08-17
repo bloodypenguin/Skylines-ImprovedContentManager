@@ -92,23 +92,6 @@ namespace ImprovedContentManager.Detours
             return index;
         }
 
-
-        [RedirectMethod]
-        public static int SortByName(CategoryContentPanel panel, EntryData a, EntryData b)
-        {
-            //begin mod
-            return Sorting.SortDirection(a, b, (a1, b1) => a1.CompareNames(b1));
-            //end mod
-        }
-
-        [RedirectMethod]
-        public static int SortByAuthor(CategoryContentPanel panel, EntryData a, EntryData b)
-        {
-            //begin mod
-            return Sorting.SortDirection(a, b, (a1, b1) => a1.CompareAuthors(b1), true);
-            //end mod
-        }
-
         [MethodImpl(MethodImplOptions.NoInlining)]
         [RedirectReverse]
         private void RefreshSelectCountLabel()

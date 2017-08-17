@@ -20,8 +20,6 @@ namespace ImprovedContentManager.UI
         private static bool _itemsSorted;
 
         private static UIPanel _sortModePanel;
-        private static UIDropDown _sortOrderDropDown;
-        private static UILabel _sortOrderLabel;
 
         public static void Bootstrap()
         {
@@ -46,7 +44,7 @@ namespace ImprovedContentManager.UI
                 if (!_itemsSorted && _categoryContainer.gameObject.GetComponent<UIComponent>().isVisible)
                 {
                     _categoryContainer.GetType().GetField("m_SortImpl", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(_categoryContainer, new Comparison<EntryData>(
-                        (a, b) => CategoryContentPanelDetour.SortByName(_categoryContainer, a, b)));
+                        EntryData.SortByName));
                     RefreshMods();
                     _itemsSorted = true;
                 }
@@ -101,17 +99,6 @@ namespace ImprovedContentManager.UI
                 Object.Destroy(_sortModePanel.gameObject);
                 _sortModePanel = null;
             }
-            if (_sortOrderDropDown != null)
-            {
-                Object.Destroy(_sortOrderDropDown.gameObject);
-                _sortOrderDropDown = null;
-            }
-            if (_sortOrderLabel != null)
-            {
-                Object.Destroy(_sortOrderLabel.gameObject);
-                _sortOrderLabel = null;
-            }
-            Sorting._pluginSortOrder = SortOrder.Ascending;
         }
 
         private static void Initialize()
@@ -128,35 +115,20 @@ namespace ImprovedContentManager.UI
             _sortModePanel.autoLayout = false;
             _sortModePanel.relativePosition = new Vector3(100, 0);
 
-            _sortOrderDropDown = UIUtils.CreateDropDownForEnum<SortOrder>(_sortModePanel, "SortOrderDropDown");
-            _sortOrderDropDown.size = new Vector2(120.0f, 24.0f);
-            _sortOrderDropDown.relativePosition = new Vector3(100.0f, 0.0f);
-            _sortOrderDropDown.eventSelectedIndexChanged += (component, value) =>
-            {
-                _sortOrderDropDown.enabled = false;
-                Sorting._pluginSortOrder = (SortOrder)value;
-                RefreshMods();
-                _sortOrderDropDown.enabled = true;
-            };
-
-            _sortOrderLabel = UIUtils.CreateLabel(_sortModePanel);
-            _sortOrderLabel.relativePosition = new Vector3(0.0f, 9.0f);
-            _sortOrderLabel.text = "Direction";
-
             _categoryContainer = PanelUtil.GetCategoryContainer("m_ModsContainer");
-            var dict = (Dictionary<string, Comparison<EntryData>>)_categoryContainer.GetType()
-                .GetField("m_SortTypeToImplDict", BindingFlags.NonPublic | BindingFlags.Instance)
-                .GetValue(_categoryContainer);
-            dict["Active"] = Sorting.SortPluginsByActive;
-            dict["Last subscribed"] = Sorting.SortPluginsByLastSubscribed;
-            dict["Last updated"] = Sorting.SortPluginsByLastUpdate;
-            dict["File location"] = Sorting.SortPluginsByLocation;
-            var dropDown = (UIDropDown)_categoryContainer.GetType()
-                .GetField("m_SortBy", BindingFlags.NonPublic | BindingFlags.Instance)
-                .GetValue(_categoryContainer);
-            dropDown.AddItem("Active");
-            dropDown.AddItem("Last subscribed");
-            dropDown.AddItem("Last updated");
+//            var dict = (Dictionary<string, Comparison<EntryData>>)_categoryContainer.GetType()
+//                .GetField("m_SortTypeToImplDict", BindingFlags.NonPublic | BindingFlags.Static)
+//                .GetValue(_categoryContainer);
+//            dict["Active"] = Sorting.SortPluginsByActive;
+//            dict["Last subscribed"] = Sorting.SortPluginsByLastSubscribed;
+//            dict["Last updated"] = Sorting.SortPluginsByLastUpdate;
+//            dict["File location"] = Sorting.SortPluginsByLocation;
+//            var dropDown = (UIDropDown)_categoryContainer.GetType()
+//                .GetField("m_SortBy", BindingFlags.NonPublic | BindingFlags.Instance)
+//                .GetValue(_categoryContainer);
+//            dropDown.AddItem("Active");
+//            dropDown.AddItem("Last subscribed");
+//            dropDown.AddItem("Last updated");
             //dropDown.AddItem("File location"); //TODO(earalov): add sorting by location for plugins
         }
 

@@ -1,4 +1,5 @@
-﻿using ICities;
+﻿using System;
+using ICities;
 using ImprovedContentManager.Redirection;
 using ImprovedContentManager.UI;
 
@@ -8,15 +9,30 @@ namespace ImprovedContentManager
     {
         public Mod()
         {
-            AssemblyRedirector.Deploy();
+            try
+            {
+                AssemblyRedirector.Deploy();
+            }
+            catch (Exception e)
+            {
+                UnityEngine.Debug.LogException(e);
+                AssemblyRedirector.Revert();
+            }
         }
 
         public string Name
         {
             get
             {
-                ImprovedModsPanel.Bootstrap();
-                ImprovedAssetsPanel.Bootstrap();
+                try
+                {
+                    ImprovedModsPanel.Bootstrap();
+                    ImprovedAssetsPanel.Bootstrap();
+                }
+                catch (Exception e)
+                {
+                    UnityEngine.Debug.LogException(e);
+                }
                 return "Improved Content Manager";
             }
         }

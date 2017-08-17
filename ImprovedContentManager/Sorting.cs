@@ -8,9 +8,6 @@ namespace ImprovedContentManager
 {
     public static class Sorting
     {
-        public static SortOrder _pluginSortOrder = SortOrder.Ascending;
-        public static SortOrder _assetSortOrder = SortOrder.Ascending;
-
 
         public static int SortPluginsByLastUpdate(EntryData a, EntryData b)
         {
@@ -95,8 +92,7 @@ namespace ImprovedContentManager
 
         public static int SortDirection(EntryData a, EntryData b, Comparison<EntryData> comparsion, bool alphabeticalSort = false)
         {
-            var ascending = (a.pluginInfo != null || b.pluginInfo != null) ? _pluginSortOrder == SortOrder.Ascending : _assetSortOrder == SortOrder.Ascending;
-            var diff = @ascending ? comparsion.Invoke(a, b) : comparsion.Invoke(b, a);
+            var diff = comparsion.Invoke(a, b);
             return diff == 0 && alphabeticalSort ? a.CompareNames(b) : diff;
         }
     }
