@@ -14,19 +14,18 @@ namespace ImprovedContentManager.Detours
     [TargetType(typeof(CategoryContentPanel))]
     public class CategoryContentPanelDetour : CategoryContentPanel
     {
+
         [RedirectMethod]
         private void RefreshVisibleAssets()
         {
             this.m_VisibleAssets = new List<EntryData>();
-            using (List<EntryData>.Enumerator enumerator = this.m_Assets.GetEnumerator())
+            CategoryContentPanel.SearchTokens tokens = new CategoryContentPanel.SearchTokens(this.m_Search);
+            foreach (EntryData asset in this.m_Assets)
             {
-                while (enumerator.MoveNext())
-                {
-                    EntryData current = enumerator.Current;
-                    if (current.IsMatch(this.m_Search))
-                        this.m_VisibleAssets.Add(current);
-                }
+                if (asset.IsMatch(tokens))
+                    this.m_VisibleAssets.Add(asset);
             }
+            this.RefreshSelectCountLabel();
             //begin mod
             if (m_AssetType?.ToString() != nameof(CustomAssetMetaData))
             {
@@ -108,6 +107,13 @@ namespace ImprovedContentManager.Detours
             //begin mod
             return Sorting.SortDirection(a, b, (a1, b1) => a1.CompareAuthors(b1), true);
             //end mod
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        [RedirectReverse]
+        private void RefreshSelectCountLabel()
+        {
+            UnityEngine.Debug.LogError("CategoryContentPanelDetour - Failed to detour RefreshEntries()");
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
