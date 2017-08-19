@@ -35,22 +35,6 @@ namespace ImprovedContentManager.Detours
             //end mod
         }
 
-        [RedirectMethod]
-        public new void SetActiveAll(bool enabled)
-        {
-            //begin mod
-            foreach (EntryData asset in this.m_VisibleAssets)
-            {
-                //end mod
-                if (asset.IsActive() != enabled && Singleton<PopsManager>.exists)
-                    Singleton<PopsManager>.instance.BufferUGCManaged(asset.GetNameForTelemetry(), enabled);
-                asset.SetActive(enabled);
-            }
-            if (Singleton<PopsManager>.exists)
-                Singleton<PopsManager>.instance.Push();
-            this.RefreshEntries();
-        }
-
         public static Dictionary<AssetType, int> CountAssets(CategoryContentPanel panel)
         {
             var index = Enum.GetValues(typeof(AssetType)).Cast<AssetType>().ToDictionary(assetType => assetType, assetType => 0);
