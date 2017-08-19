@@ -66,7 +66,7 @@ namespace ImprovedContentManager.Redirection
         {
             foreach (var method in GetRedirectedMethods<RedirectMethodAttribute>(type, onCreated))
             {
-                UnityEngine.Debug.Log($"Redirecting {targetType.Name}#{method.Name}...");
+                //UnityEngine.Debug.Log($"Redirecting {targetType.Name}#{method.Name}...");
                 RedirectMethod(targetType, method, redirects);
             }
         }
@@ -94,7 +94,7 @@ namespace ImprovedContentManager.Redirection
         {
             foreach (var method in GetRedirectedMethods<RedirectReverseAttribute>(type, onCreated))
             {
-                UnityEngine.Debug.Log($"Redirecting reverse {targetType.Name}#{method.Name}...");
+                //UnityEngine.Debug.Log($"Redirecting reverse {targetType.Name}#{method.Name}...");
                 RedirectMethod(targetType, method, redirects, true);
             }
         }
