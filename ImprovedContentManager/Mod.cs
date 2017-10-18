@@ -13,7 +13,8 @@ namespace ImprovedContentManager
             try
             {
                 AssemblyRedirector.Deploy();
-                LocaleUtil.AddLocale("PANEL_SORT_UPDATED", null, "Time Updated");
+                //TODO(earalov): restore
+                //                LocaleUtil.AddLocale("PANEL_SORT_UPDATED", null, "Time Updated");
             }
             catch (Exception e)
             {

@@ -117,21 +117,22 @@ namespace ImprovedContentManager.UI
             _sortModePanel.relativePosition = new Vector3(100, 0);
 
             _categoryContainer = PanelUtil.GetCategoryContainer("m_ModsContainer");
-            var dict = (Dictionary<string, Comparison<EntryData>>)_categoryContainer.GetType()
-                .GetField("m_SortTypeToImplDict", BindingFlags.NonPublic | BindingFlags.Static)
-                .GetValue(_categoryContainer);
-            var lastUpdatedVanilla = dict["PANEL_SORT_MODIFIED"];
-            dict["PANEL_SORT_MODIFIED"] = Sorting.SortPluginsByLastModified;
-            dict["PANEL_SORT_SUBSCRIBED"] = Sorting.SortPluginsByLastSubscribed;
-            dict["PANEL_SORT_UPDATED"] = lastUpdatedVanilla;
-            var dropDown = (UIDropDown)_categoryContainer.GetType()
-                .GetField("m_SortBy", BindingFlags.NonPublic | BindingFlags.Instance)
-                .GetValue(_categoryContainer);
-            dropDown.AddItem("Last subscribed");
-            dropDown.AddItem("Last updated");
-            dropDown.localizedItems = dropDown.localizedItems
-                .Concat(new[] { "PANEL_SORT_SUBSCRIBED", "PANEL_SORT_UPDATED" })
-                .ToArray();
+//TODO(earalov): restore
+//            var dict = (Dictionary<string, Comparison<EntryData>>)_categoryContainer.GetType()
+//                .GetField("m_SortTypeToImplDict", BindingFlags.NonPublic | BindingFlags.Static)
+//                .GetValue(_categoryContainer);
+//            var lastUpdatedVanilla = dict["PANEL_SORT_MODIFIED"];
+//            dict["PANEL_SORT_MODIFIED"] = Sorting.SortPluginsByLastModified;
+//            dict["PANEL_SORT_SUBSCRIBED"] = Sorting.SortPluginsByLastSubscribed;
+//            dict["PANEL_SORT_UPDATED"] = lastUpdatedVanilla;
+//            var dropDown = (UIDropDown)_categoryContainer.GetType()
+//                .GetField("m_SortBy", BindingFlags.NonPublic | BindingFlags.Instance)
+//                .GetValue(_categoryContainer);
+//            dropDown.AddItem("Last subscribed");
+//            dropDown.AddItem("Last updated");
+//            dropDown.localizedItems = dropDown.localizedItems
+//                .Concat(new[] { "PANEL_SORT_SUBSCRIBED", "PANEL_SORT_UPDATED" })
+//                .ToArray();
         }
 
 
