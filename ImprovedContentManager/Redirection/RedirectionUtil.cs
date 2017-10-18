@@ -123,6 +123,13 @@ namespace ImprovedContentManager.Redirection
             var originalMethod = targetType.GetMethod(detour.Name,
                 BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static, null, types,
                 null);
+            if (originalMethod == null)
+            {
+                types = parameters.Select(p => p.ParameterType).ToArray();
+                originalMethod = targetType.GetMethod(detour.Name,
+                    BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static, null, types,
+                    null);
+            }
             var redirectCallsState =
                 reverse ? RedirectionHelper.RedirectCalls(detour, originalMethod) : RedirectionHelper.RedirectCalls(originalMethod, detour);
             return Tuple.New(reverse ? detour : originalMethod, redirectCallsState);

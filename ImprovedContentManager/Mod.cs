@@ -2,6 +2,7 @@
 using ICities;
 using ImprovedContentManager.Redirection;
 using ImprovedContentManager.UI;
+using ImprovedContentManager.Util;
 
 namespace ImprovedContentManager
 {
@@ -12,6 +13,7 @@ namespace ImprovedContentManager
             try
             {
                 AssemblyRedirector.Deploy();
+                LocaleUtil.AddLocale("PANEL_SORT_UPDATED", null, "Time Updated");
             }
             catch (Exception e)
             {

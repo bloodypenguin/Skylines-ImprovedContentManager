@@ -32,6 +32,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="AssetTypeAttribute.cs" />
+    <Compile Include="Detours\EntryDataDetour.cs" />
     <Compile Include="Enums\AssetType.cs" />
     <Compile Include="Enums\SortMode.cs" />
     <Compile Include="Enums\SortOrder.cs" />
@@ -57,6 +58,7 @@
     <Compile Include="UI\PanelUtil.cs" />
     <Compile Include="UI\ImprovedAssetsPanel.cs" />
     <Compile Include="UI\ImprovedModsPanel.cs" />
+    <Compile Include="Util\LocaleUtil.cs" />
     <Compile Include="Util\EnumUtils.cs" />
     <Compile Include="Util\FunctionalComparer.cs" />
     <Compile Include="Util\UIUtils.cs" />

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using ColossalFramework;
 using ColossalFramework.UI;
@@ -265,20 +266,21 @@ namespace ImprovedContentManager.UI
             _sortModePanel.autoLayout = false;
 
             _categoryContainer = PanelUtil.GetCategoryContainer("m_AssetsContainer");
-//            var dict = (Dictionary<string, Comparison<EntryData>>)_categoryContainer.GetType()
-//                .GetField("m_SortTypeToImplDict", BindingFlags.NonPublic | BindingFlags.Static)
-//                .GetValue(_categoryContainer);
-//            dict["Active"] = Sorting.SortAssetsByActive;
-//            dict["Last subscribed"] = Sorting.SortAssetsByLastSubscribed;
-//            dict["Last updated"] = Sorting.SortAssetsByLastUpdate;
-//            dict["File location"] = Sorting.SortAssetsByLocation;
-//            var dropDown = (UIDropDown)_categoryContainer.GetType()
-//                .GetField("m_SortBy", BindingFlags.NonPublic | BindingFlags.Instance)
-//                .GetValue(_categoryContainer);
-//            dropDown.AddItem("Active");
-//            dropDown.AddItem("Last subscribed");
-//            dropDown.AddItem("Last updated");
-//            dropDown.AddItem("File location");
+            var dict = (Dictionary<string, Comparison<EntryData>>)_categoryContainer.GetType()
+                .GetField("m_SortTypeToImplDict", BindingFlags.NonPublic | BindingFlags.Static)
+                .GetValue(_categoryContainer);
+            var lastUpdatedVanilla = dict["PANEL_SORT_MODIFIED"];
+            dict["PANEL_SORT_MODIFIED"] = Sorting.SortAssetsByLastModified;
+            dict["PANEL_SORT_SUBSCRIBED"] = Sorting.SortAssetsByLastSubscribed;
+            dict["PANEL_SORT_UPDATED"] = lastUpdatedVanilla;
+            var dropDown = (UIDropDown)_categoryContainer.GetType()
+                .GetField("m_SortBy", BindingFlags.NonPublic | BindingFlags.Instance)
+                .GetValue(_categoryContainer);
+            dropDown.AddItem("Last subscribed");
+            dropDown.AddItem("Last updated");
+            dropDown.localizedItems = dropDown.localizedItems
+                .Concat(new[] {"PANEL_SORT_SUBSCRIBED", "PANEL_SORT_UPDATED"})
+                .ToArray();
             refreshCounters.eventClick += (component, param) =>
             {
                 SetAssetCountLabels();
