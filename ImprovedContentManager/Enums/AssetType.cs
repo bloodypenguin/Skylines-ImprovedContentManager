@@ -91,6 +91,8 @@
         [AssetType(SteamHelper.kSteamTagVehicle, "InfoIconTrafficCongestion")]
         Vehicle,
         [AssetType(SteamHelper.kSteamTagCitizen, "InfoIconPopulation")]
-        Citizen
+        Citizen,
+        [AssetType(SteamHelper.kSteamTagRoad, "ToolbarIconRoads")]
+        Road,
     }
 }
