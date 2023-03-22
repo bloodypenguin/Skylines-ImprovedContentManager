@@ -41,10 +41,5 @@ namespace ImprovedContentManager.Detours
         {
             //to satisfy compiler
         }
-
-        public EntryDataDetour(PublishedFileId id) : base(id)
-        {
-            //to satisfy compiler
-        }
     }
 }

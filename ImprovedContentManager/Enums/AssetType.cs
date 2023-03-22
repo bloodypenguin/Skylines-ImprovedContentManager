@@ -78,10 +78,12 @@
         TransportTaxi,
         [AssetType(SteamHelper.kSteamTagTransportTram, "SubBarPublicTransportTram")]
         TransportTram,
-        [AssetType(SteamHelper.kSteamTagTransportTram, "SubBarPublicTransportMonorail")]
+        [AssetType(SteamHelper.kSteamTagTransportMonorail, "SubBarPublicTransportMonorail")]
         TransportMonorail,
         [AssetType(SteamHelper.kSteamTagTransportCableCar, "SubBarPublicTransportCableCar")]
         TransportCableCar,
+        [AssetType(SteamHelper.kSteamTagTrolleybus, "SubBarPublicTransportTrolleybus")]
+        TransportTrolleybus,
         [AssetType(SteamHelper.kSteamTagUniqueBuilding, "ToolbarIconMonuments")]
         UniqueBuilding,
         [AssetType(SteamHelper.kSteamTagMonument, "ToolbarIconWonders")]
